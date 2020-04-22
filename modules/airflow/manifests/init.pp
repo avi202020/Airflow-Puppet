@@ -29,31 +29,31 @@ class airflow {
       mode   => '0644',
       owner  => 'root',
       group  => 'root',
-      source => 'puppet:///modules/aetn_airflow/airflow';
+      source => 'puppet:///modules/airflow/airflow';
     '/etc/systemd/system/airflow-scheduler.service':
       ensure => 'file',
       mode   => '0644',
       owner  => 'root',
       group  => 'root',
-      source => 'puppet:///modules/aetn_airflow/airflow-scheduler.service';
+      source => 'puppet:///modules/airflow/airflow-scheduler.service';
     '/etc/systemd/system/airflow-webserver.service':
       ensure => 'file',
       mode   => '0644',
       owner  => 'root',
       group  => 'root',
-      source => 'puppet:///modules/aetn_airflow/airflow-webserver.service';
+      source => 'puppet:///modules/airflow/airflow-webserver.service';
     '/etc/systemd/system/airflow-worker.service':
       ensure => 'file',
       mode   => '0644',
       owner  => 'root',
       group  => 'root',
-      source => 'puppet:///modules/aetn_airflow/airflow-worker.service';
+      source => 'puppet:///modules/airflow/airflow-worker.service';
     '/opt/scripts':
       ensure => 'directory',
       mode   => '0755',
       owner  => 'root',
       group  => 'root',
       recurse => true,
-      source => 'puppet:///modules/aetn_airflow/scripts';
+      source => 'puppet:///modules/airflow/scripts';
   }
 }

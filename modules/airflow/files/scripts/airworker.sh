@@ -1,27 +1,18 @@
 #!/bin/bash
-#{env_server} in this script assumes that the server has an env variable which represents if it's a dev|qa|prod server
 
-pip3 install --upgrade Flask-OAuthlib
+# {env} variable refers to dev|qa|prod env
+
+source /etc/profile
 sed -i 's!"FORWARDED_ALLOW_IPS", "127.0.0.1"!"FORWARDED_ALLOW_IPS", "*"!' /usr/local/lib/python3.7/site-packages/gunicorn/config.py
-if [ -d /usr/local/airflow/dags ]; then echo 'dag directory is present'; else mkdir /usr/local/airflow/dags; fi
-if [ -f /usr/local/airflow/airflow.cfg ]; then 
-    rm -f /usr/local/airflow/airflow.cfg
-    cp -rf /opt/scripts/${env_server}-airflow.cfg /usr/local/airflow/airflow.cfg
-else
-    cp -rf /opt/scripts/${env_server}-airflow.cfg /usr/local/airflow/airflow.cfg
-fi
-chown -R airflow:airflow /usr/local/airflow
-if [ $AIRFLOW_HOME == '/usr/local/airflow' ]
-then
-    runuser -l airflow -c 'airflow initdb'
+mv -f /opt/scripts/${env}-airflow.cfg /usr/local/airflow/airflow.cfg
 
-elif [ $AIRFLOW_HOME == '/usr/local/airflowexport' ]
-then
-    rm -rf /usr/local/airflowexport
-    export $AIRFLOW_HOME='/usr/local/airflow'
-    runuser -l airflow -c 'airflow initdb'
-else
-    echo "Below is the current home"
-    echo $AIRFLOW_HOME
-fi
+# Get the values from AWS SSM Parameter Store
+params=(DB_USER DB_PASS DB_NAME DB_HOST CLIENT_SECRET CLIENT_ID)
+for param in "${params[@]}";
+do
+    sed -i "s/{"${param}"}/$(aws ssm get-parameter --name /"${env}"/airflow/"${param}" --region us-east-1| jq -r ".Parameter.Value")/g" /usr/local/airflow/airflow.cfg
+done
+chown -R airflow:airflow /usr/local/airflow
+runuser -l airflow -c 'airflow initdb'
+
 systemctl start airflow-worker && systemctl enable airflow-worker
